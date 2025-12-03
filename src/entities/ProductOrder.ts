@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import Product from './Product';
 
 export default class ProductOrder {
@@ -24,7 +25,7 @@ export default class ProductOrder {
             return new Error("Order date must be valid");
         }
 
-        const uuid = "";
+        const uuid = randomUUID();
         return new ProductOrder(uuid, product, quantity, orderDate);
     }
 
