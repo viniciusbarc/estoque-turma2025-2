@@ -2,7 +2,12 @@ import { randomBytes } from "crypto";
 import Product from "../entities/Product";
 import { SqliteConnection } from "./SqliteConnection";
 
-export class ProductRepository {
+export interface ProductRepositoryInterface {
+    findByBarcode(barcode: string): Product | null;
+    createProduct(product: Product): boolean;
+}
+
+export class ProductRepository implements ProductRepositoryInterface {
     private sqliteConnection: SqliteConnection;
 
     constructor(sqliteConnection: SqliteConnection) {
