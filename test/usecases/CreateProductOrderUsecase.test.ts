@@ -1,6 +1,7 @@
 import Product from '../../src/entities/Product';
 import ProductOrder from '../../src/entities/ProductOrder';
 import { ProductOrderRepositoryInterface } from '../../src/repositories/ProductOrderRepository';
+import { ProductRepositoryInterface } from '../../src/repositories/ProductRepository';
 import { CreateProductOrderUsecase } from '../../src/usecases/CreateProductOrderUsecase';
 
 describe('CreateProductOrderUsecase', () => {
@@ -14,25 +15,35 @@ describe('CreateProductOrderUsecase', () => {
             }
         }
 
-        const productOrderRepositoryMock = new ProductOrderRepositoryMock();
-        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock);
+        class ProductRepositoryMock implements ProductRepositoryInterface {
+            createProduct(product: Product): boolean {
+                return true;
+            } 
+            findByBarcode(barcode: string): Product | null {
+                return Product.rebuild(barcode, 'Test Product', 10, 14);
+            }
+        }
 
-        const product = Product.rebuild('1234567890123', 'Test Product', 10, 14);
+        const productOrderRepositoryMock = new ProductOrderRepositoryMock();
+        const productRepositoryMock = new ProductRepositoryMock();
+        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock, productRepositoryMock);
+
+        const barcode: string = '1234567890123';
         const quantity: number = 5;
         const orderDate: Date = new Date('2025-12-13');
 
-        const result = createProductOrderUsecase.execute(product, quantity, orderDate);
+        const result = createProductOrderUsecase.execute(barcode, quantity, orderDate);
 
         expect(result).toBeInstanceOf(ProductOrder);
         if (result instanceof ProductOrder) {
-            expect(result.getProduct()).toBe(product);
+            expect(result.getProduct().getBarcode()).toBe(barcode);
             expect(result.getQuantity()).toBe(quantity);
             expect(result.getOrderDate()).toEqual(orderDate);
             expect(result.getUuid()).toBeDefined();
         }
     });
 
-    test('should return ERROR if product is invalid', async () => {
+    test('should return ERROR if product not exist', async () => {
   
         class ProductOrderRepositoryMock implements ProductOrderRepositoryInterface {
             findByUuid(uuid: string): ProductOrder | null {
@@ -42,14 +53,24 @@ describe('CreateProductOrderUsecase', () => {
             }
         }
 
-        const productOrderRepositoryMock = new ProductOrderRepositoryMock();
-        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock);
+        class ProductRepositoryMock implements ProductRepositoryInterface {
+            createProduct(product: Product): boolean {
+                return true;
+            } 
+            findByBarcode(barcode: string): Product | null {
+                return null;
+            }
+        }
 
-        const product = null as any;
+        const productOrderRepositoryMock = new ProductOrderRepositoryMock();
+        const productRepositoryMock = new ProductRepositoryMock();
+        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock, productRepositoryMock);
+
+        const barcode: string = '1234567890123';
         const quantity: number = 5;
         const orderDate: Date = new Date('2025-12-13');
 
-        const result = createProductOrderUsecase.execute(product, quantity, orderDate);
+        const result = createProductOrderUsecase.execute(barcode, quantity, orderDate);
 
         expect(result).toBeInstanceOf(Error);
     });  
@@ -64,14 +85,24 @@ describe('CreateProductOrderUsecase', () => {
             }
         }
 
-        const productOrderRepositoryMock = new ProductOrderRepositoryMock();
-        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock);
+        class ProductRepositoryMock implements ProductRepositoryInterface {
+            createProduct(product: Product): boolean {
+                return true;
+            } 
+            findByBarcode(barcode: string): Product | null {
+                return Product.rebuild(barcode, 'Test Product', 10, 14);
+            }
+        }
 
-        const product = Product.rebuild('1234567890123', 'Test Product', 10, 14);
+        const productOrderRepositoryMock = new ProductOrderRepositoryMock();
+        const productRepositoryMock = new ProductRepositoryMock();
+        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock, productRepositoryMock);
+
+        const barcode: string = '1234567890123';
         const quantity: number = -5;
         const orderDate: Date = new Date('2025-12-13');
 
-        const result = createProductOrderUsecase.execute(product, quantity, orderDate);
+        const result = createProductOrderUsecase.execute(barcode, quantity, orderDate);
 
         expect(result).toBeInstanceOf(Error);
         if (result instanceof Error) {
@@ -86,18 +117,27 @@ describe('CreateProductOrderUsecase', () => {
                 return null;
             }
             save(productOrder: ProductOrder): void {
-        
+            }
+        }
+
+        class ProductRepositoryMock implements ProductRepositoryInterface {
+            createProduct(product: Product): boolean {
+                return true;
+            } 
+            findByBarcode(barcode: string): Product | null {
+                return Product.rebuild(barcode, 'Test Product', 10, 14);
             }
         }
 
         const productOrderRepositoryMock = new ProductOrderRepositoryMock();
-        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock);
+        const productRepositoryMock = new ProductRepositoryMock();
+        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock, productRepositoryMock);
 
-        const product = Product.rebuild('1234567890123', 'Test Product', 10, 14);
+        const barcode: string = '1234567890123';
         const quantity: number = 5;
         const orderDate: Date = new Date('invalid date');
 
-        const result = createProductOrderUsecase.execute(product, quantity, orderDate);
+        const result = createProductOrderUsecase.execute(barcode, quantity, orderDate);
 
         expect(result).toBeInstanceOf(Error);
         if (result instanceof Error) {
@@ -112,18 +152,28 @@ describe('CreateProductOrderUsecase', () => {
                 return null;
             }
             save(productOrder: ProductOrder): void {
-                throw new Error('Database connection lost');
+                throw new Error('Database error');
+            }
+        }
+
+        class ProductRepositoryMock implements ProductRepositoryInterface {
+            createProduct(product: Product): boolean {
+                return true;
+            } 
+            findByBarcode(barcode: string): Product | null {
+                return Product.rebuild(barcode, 'Test Product', 10, 14);
             }
         }
 
         const productOrderRepositoryMock = new ProductOrderRepositoryMock();
-        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock);
+        const productRepositoryMock = new ProductRepositoryMock();
+        const createProductOrderUsecase = new CreateProductOrderUsecase(productOrderRepositoryMock, productRepositoryMock);
 
-        const product = Product.rebuild('1234567890123', 'Test Product', 10, 14);
+        const barcode: string = '1234567890123';
         const quantity: number = 5;
         const orderDate: Date = new Date('2025-12-13');
 
-        const result = createProductOrderUsecase.execute(product, quantity, orderDate);
+        const result = createProductOrderUsecase.execute(barcode, quantity, orderDate);
 
         expect(result).toBeInstanceOf(Error);
         if (result instanceof Error) {

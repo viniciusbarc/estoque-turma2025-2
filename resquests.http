@@ -1,0 +1,14 @@
+# Este arquivo requer a extensão REST Client para funcionar corretamente.
+
+### requisição POST para criar produto
+POST http://localhost:3000/products
+content-type: application/json
+
+{
+    "barcode": "1234567899",
+    "name": "Guaravita",
+    "orderReferenceDays": 30
+}
+
+### requisição GET para listar produtos
+GET http://localhost:3000/products

@@ -1,25 +1,23 @@
 import Product from "./entities/Product";
-import readlineSync from "readline-sync";
 import { SqliteConnection } from "./repositories/SqliteConnection";
 import { ProductRepository } from "./repositories/ProductRepository";
 import { CreateProductUsecase } from "./usecases/CreateProductUsecase";
+import { CreateProductController } from "./controllers/CreateProductController";
+import fastify from "fastify";
 
 const sqliteConnection = new SqliteConnection("db/estoque.db");
 const productRepository = new ProductRepository(sqliteConnection);
 const createProductUsecase = new CreateProductUsecase(productRepository);
+const createProductController = new CreateProductController(createProductUsecase);
 
-let barcodeInput: string = readlineSync.question("Enter product barcode: ");
-let nameInput: string = readlineSync.question("Enter product name: ");
-let orderReferenceDaysInput: number = parseInt(readlineSync.question("Enter order reference days: "));
+const app = fastify();
 
-const result = createProductUsecase.execute(barcodeInput, nameInput, orderReferenceDaysInput);
+app.post("/products", createProductController.handle.bind(createProductController));
 
-if (result instanceof Product) {
-    console.log("Product created:");
-    console.log("Barcode:", result.getBarcode());
-    console.log("Name:", result.getName());
-    console.log("Quantity in Stock:", result.getQuantityInStock());
-    console.log("Order Reference Days:", result.getOrderReferenceDays());
-} else {
-    console.log(result.message);
-}
+app.listen({ port: 3000 }, (err, address) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  console.log(`Server listening at ${address}`);
+});

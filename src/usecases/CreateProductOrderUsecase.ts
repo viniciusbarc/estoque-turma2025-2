@@ -1,17 +1,25 @@
 import ProductOrder from "../entities/ProductOrder";
 import Product from "../entities/Product";
 import type { ProductOrderRepositoryInterface } from "../repositories/ProductOrderRepository";
+import type { ProductRepositoryInterface } from "../repositories/ProductRepository";
 
 export class CreateProductOrderUsecase {
 
     private productOrderRepository: ProductOrderRepositoryInterface;
+    private productRepository: ProductRepositoryInterface;
 
-    constructor(productOrderRepository: ProductOrderRepositoryInterface) {
+    constructor(productOrderRepository: ProductOrderRepositoryInterface, productRepository: ProductRepositoryInterface) {
         this.productOrderRepository = productOrderRepository;
+        this.productRepository = productRepository;
     }
 
-    public execute(product: Product, quantity: number, orderDate: Date): ProductOrder | Error {
+    public execute(barcode: string, quantity: number, orderDate: Date): ProductOrder | Error {
         try {
+            const product = this.productRepository.findByBarcode(barcode);
+            if (!product) {
+                return new Error("Product not found");
+            }
+            
             const newProductOrder = ProductOrder.create(product, quantity, orderDate);
             if (newProductOrder instanceof Error) {
                 return new Error(newProductOrder.message);
